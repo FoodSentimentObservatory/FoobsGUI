@@ -1,0 +1,78 @@
+package scenes;
+
+import java.util.ArrayList;
+
+import Const.GlobalConts;
+import controller.Controller;
+import handlers.ButtonHandlers;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
+import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Paint;
+import utils.ElementConstructors;
+
+public class NewSearchScreenSearchName extends Scene{
+    
+	private Controller controller;
+	
+	public NewSearchScreenSearchName(Parent root, double width, double height, Paint fill, Controller controller) throws Exception {
+		super(root, width, height, fill);
+		this.controller = controller;
+		createLayout ();
+		
+	}
+	
+    private void createLayout () {
+		
+    	BorderPane border = new BorderPane();
+        //System.out.println(controller.getScene());
+        border.prefHeightProperty().bind(controller.primaryStage.heightProperty());
+        border.prefWidthProperty().bind(controller.primaryStage.widthProperty());
+        ToolBar toolbar = createtoolBar();
+        toolbar.setPrefHeight(50);
+        
+        border.setTop(toolbar);
+		HBox hBox = new HBox();
+	    hBox.setSpacing(8);
+	    hBox.setAlignment(Pos.CENTER);
+	    hBox.getChildren().addAll(createElements ());
+	    
+	    border.setCenter(hBox);  
+	    Group root = (Group)this.getRoot();
+        root.getChildren().add(border);
+	}
+
+	private ArrayList createElements() {
+		ArrayList elements = new ArrayList ();	
+		// TODO Auto-generated method stub
+		Label label = new Label ("Enter new search name");
+		TextField searchName = new TextField ();
+		Button next = new Button ("Next");
+		next.setOnAction(ButtonHandlers.SearchNewGeolocation(controller));
+		elements.add(label);
+		elements.add(searchName);
+		elements.add(next);
+		
+		return elements;
+	}
+	
+private ToolBar  createtoolBar () {
+		
+		Button  back = ElementConstructors.createSmallButtonWithImage(new Image(getClass().getResourceAsStream("/images/left.png")),"Back");
+		back.setOnAction(ButtonHandlers.SearchMain(controller));
+		ToolBar toolbar = new ToolBar(back);
+		return toolbar;
+	}
+	
+}
