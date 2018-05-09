@@ -2,6 +2,12 @@ package scenes;
 
 
 import java.awt.Dimension;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -33,7 +39,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import openGeoTools.Test;
+
 import utils.ElementConstructors;
 import utils.ElementManipulators;
 
@@ -42,10 +48,7 @@ public class NewSearchScreenGeolocation extends Scene {
 	private FlowPane listOfSearchRadiuses;
 	private ArrayList listComponents = new ArrayList ();
 	private Controller controller;
-	private Test map;
-	
-	
-	
+
 //	final SwingNode swingNode = new SwingNode();
 	WebEngine webEngine;
 	
@@ -75,8 +78,12 @@ public class NewSearchScreenGeolocation extends Scene {
 		//test web view map 
 		 WebView browser = new WebView();
          webEngine = browser.getEngine();
-         webEngine.load(getClass().getResource("map.html").toString());
+         byte[] encoded = Files.readAllBytes(Paths.get(System.getProperty("user.dir")+File.separator+"html"+File.separator+"map.html"));
+         String content =  new String(encoded, Charset.defaultCharset());
+        // System.out.println(content);
         
+         webEngine.loadContent(content);
+       
         Group root = (Group)this.getRoot();
         
         BorderPane border = new BorderPane();
@@ -219,11 +226,19 @@ public class NewSearchScreenGeolocation extends Scene {
 	
 	private ToolBar  createtoolBar () {
 		
-		Button  back = ElementConstructors.createSmallButtonWithImage(new Image(getClass().getResourceAsStream("/images/left.png")),"Back");
-		back.setOnAction(ButtonHandlers.SearchMain(controller));
-		Button  next = ElementConstructors.createSmallButtonWithText("Next");
-		next.setOnAction(ButtonHandlers.SearchNewKeywords(controller));
-		ToolBar toolbar = new ToolBar(back,next);
+		ToolBar toolbar = null;
+		try {
+			Button back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
+			back.setOnAction(ButtonHandlers.SearchMain(controller));
+			Button  next = ElementConstructors.createSmallButtonWithText("Next");
+			next.setOnAction(ButtonHandlers.SearchNewKeywords(controller));
+			toolbar = new ToolBar(back,next);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		return toolbar;
 	}
 	

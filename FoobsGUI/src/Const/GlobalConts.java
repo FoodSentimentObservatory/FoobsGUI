@@ -14,5 +14,8 @@ public class GlobalConts {
 	public  static int SMALL_BUTTON_HEIGHT = 12;
 	public static int SMALL_BUTTON_WIDTH = 12;
 	
+	public static String SERVER_NAME = "";
+	public static String consumerKey ="";
+	public static String consumerSecret ="";
 	
 }

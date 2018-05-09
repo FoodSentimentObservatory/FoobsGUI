@@ -1,0 +1,26 @@
+<hibernate-configuration>
+   <session-factory>
+
+      <property name="connection.driver_class">com.microsoft.sqlserver.jdbc.SQLServerDriver</property>
+       <property name="connection.pool_size">200</property>
+
+
+
+      <property name="show_sql">false</property>
+      <property name="current_session_context_class">thread</property>
+
+      <property name="dialect">org.hibernate.dialect.SQLServerDialect</property>
+      
+     
+      <mapping class="collector.entity.AgentEntity"/>
+      <mapping class="collector.entity.GeoPointEntity"/>
+      <mapping class="collector.entity.LocationEntity"/>
+      <mapping class="collector.entity.PlatformEntity"/>
+      <mapping class="collector.entity.UserAccountEntity"/>
+      <mapping class="collector.entity.PostEntity"/>
+      <mapping class="collector.entity.SearchDetailsEntity"/>
+      <mapping class="collector.twitter.app.SearchObject"/>
+
+
+   </session-factory>
+</hibernate-configuration>

@@ -1,5 +1,8 @@
 package scenes;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import controller.Controller;
@@ -75,7 +78,11 @@ public class NewSearchScreenKeywords extends Scene{
 
 private ToolBar  createtoolBar () {
 		
-		Button  back = ElementConstructors.createSmallButtonWithImage(new Image(getClass().getResourceAsStream("/images/left.png")),"Back");
+		Button back;
+		ToolBar toolbar=null;
+		try {
+			back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
+		
 		back.setOnAction(ButtonHandlers.SearchNewGeolocation(controller));
 		
 		Button  clear = ElementConstructors.createSmallButtonWithText("Clear");
@@ -92,7 +99,11 @@ private ToolBar  createtoolBar () {
 		
 		
 		
-		ToolBar toolbar = new ToolBar(back, clear, fromFile, label, manualText, manual,start);
+		 toolbar = new ToolBar(back, clear, fromFile, label, manualText, manual,start);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return toolbar;
 	}
    

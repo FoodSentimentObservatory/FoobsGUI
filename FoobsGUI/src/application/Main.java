@@ -1,5 +1,7 @@
 package application;
 	
+import java.sql.SQLException;
+
 import Const.GlobalConts;
 import controller.Controller;
 import javafx.application.Application;
@@ -32,10 +34,19 @@ public class Main extends Application {
 			primaryStage.setScene(loading);
 			primaryStage.show();
 			Controller controller = new Controller (primaryStage) ;
+			
 			controller.initializeScenes();
+			BorderPane border = new BorderPane();
+		    border.prefHeightProperty().bind(primaryStage.heightProperty());
+		    border.prefWidthProperty().bind(primaryStage.widthProperty());
+			border.setBottom(controller.topInfoBar.infoBar);
 			
-			controller.setHome(primaryStage);
+			Scene rootScene = new Scene (border);
+			primaryStage.setScene(rootScene);
 			
+			
+			controller.setHome();
+			primaryStage.show();
 			primaryStage.setOnHiding(new EventHandler<WindowEvent>() {
 
 		        @Override
@@ -45,6 +56,16 @@ public class Main extends Application {
 		                @Override
 		                public void run() {
 		                    System.out.println("Application Closed by click to Close Button(X)");
+		                    
+		                    if (controller.con!= null) {
+		                    	System.out.println("Colosing Db connection");
+		                    	try {
+									controller.con.close();
+								} catch (SQLException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+		                    }
 		                    System.exit(0);
 		                }
 		            });

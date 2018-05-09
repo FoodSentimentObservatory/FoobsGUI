@@ -1,0 +1,36 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+   compile 'org.twitter4j:twitter4j-core:4.0.6'
+   compile 'org.twitter4j:twitter4j-stream:4.0.6'
+   compile 'com.microsoft.sqlserver:mssql-jdbc:6.1.0.jre8'
+   compile 'org.hibernate:hibernate-core:5.2.10.Final'
+ //  compile 'javax.persistence:persistence-api:1.0.2'
+   compile group: 'commons-io', name: 'commons-io', version: '2.5'
+}
+
+jar {
+   manifest {
+      attributes 'Main-Class': 'application.Main'
+   }
+
+   from ({ configurations.compile.collect { it.isDirectory()  ? it : zipTree(it) } }) {
+      exclude "META-INF/*.SF"
+      exclude "META-INF/*.DSA"
+      exclude "META-INF/*.RSA"
+   }
+   
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src"]
+        }
+    }
+}
+
+}

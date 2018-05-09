@@ -1,5 +1,8 @@
 package scenes;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import Const.GlobalConts;
@@ -69,9 +72,17 @@ public class NewSearchScreenSearchName extends Scene{
 	
 private ToolBar  createtoolBar () {
 		
-		Button  back = ElementConstructors.createSmallButtonWithImage(new Image(getClass().getResourceAsStream("/images/left.png")),"Back");
-		back.setOnAction(ButtonHandlers.SearchMain(controller));
-		ToolBar toolbar = new ToolBar(back);
+	     ToolBar toolbar =null;
+		Button back;
+		try {
+			back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
+			back.setOnAction(ButtonHandlers.SearchMain(controller));
+			 toolbar = new ToolBar(back);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return toolbar;
 	}
 	
