@@ -10,16 +10,19 @@ import collector.entity.GeoPointEntity;
 import collector.entity.LocationEntity;
 import collector.entity.PlatformEntity;
 import collector.entity.SearchDetailsEntity;
+import collector.entity.SearchLeafNodeEntity;
 import collector.twitter.app.AppRESTAPI;
 import collector.twitter.app.SearchObject;
 import controller.Controller;
 import db.DbDataManager;
 import db.SearchInfo;
+import scenes.ContinuedSearchProgress;
+import status.SearchInfoBarVBox;
 import twitter4j.GeoLocation;
 
 public  class SearchManager {
 
-	public static void continueSearch(ArrayList <SearchInfo> lastSearches, Controller controller) {
+	public static void continueSearch(ArrayList <SearchInfo> lastSearches, Controller controller,SearchInfoBarVBox  searchInfoBarVBox) {
 		
 				  DbDataManager dbDataManager = new DbDataManager(controller);
 		          Date startDate = new Date();
@@ -34,23 +37,14 @@ public  class SearchManager {
 		        	  System.out.println(lastSearches.get(i).getLon() );  
 		         
 		        	  SearchObject searchDetails = new SearchObject();
-		    	      searchDetails.setKeywords(lastSearches.get(i).getKeywords());
+		    	     
 		    	      
-		    	      //TO DO fix so it does not create new location, geolocation and geopoint entities
-		    	      LocationEntity location = new LocationEntity();
-		    	      GeoLocation geoLocation = new   GeoLocation(lastSearches.get(i).getLat(), lastSearches.get(i).getLon());
-		    	      GeoPointEntity geoPoint = new GeoPointEntity(geoLocation);
-		    	      
-		    	      
-		    	      geoPoint.setLocationId(location);
-		    	      location.setGeoPoint(geoPoint);
-		    	      location.setDisplayString(lastSearches.get(i).getSubLabel());	    	        
-		    	      searchDetails.setRadius(lastSearches.get(i).getRadius());
+		    	     
 		    	    
 		    	      System.out.println("Getting last tweet id for searcch "+ lastSearches.get(i).getId());
 		    	      String lastTweetId="";
 					try {
-						lastTweetId = dbDataManager.getLatestTweetID(lastSearches.get(i).getId());
+						lastTweetId = dbDataManager.getLatestTweetID(Integer.toString(lastSearches.get(i).getId()));
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -61,16 +55,16 @@ public  class SearchManager {
 		    	      }
 		    	      
 		    	        
-		    	      searchDetails.setLocationId(location);
-		    	      searchDetails.setNote(lastSearches.get(i).note);
+		    	     
 		    	      searchDetails.setStartOfSearch(startDate);
 		    	      
 					  searches.add(searchDetails); 
+					  DAO.saveSearchDetails((SearchDetailsEntity) searches.get(i),controller);
 		          }
-		            PlatformEntity twitter = DAO.getPlatfromBasedOnName("Twitter",controller);
+		         
 			        AppRESTAPI restAPI = new AppRESTAPI(controller);
 			   
-			        restAPI.searchKeywordListGeoCodedMultipleSearches(searches);
+			//        restAPI.searchKeywordListGeoCodedMultipleSearches(searches,searchInfoBarVBox);
 			        
 			        
 			        Date endDate = new Date();
@@ -81,69 +75,69 @@ public  class SearchManager {
 			        }
 		          
 		          
-		          /*
-		          
-		      //    System.out.println("Keywords loaded from file" + keywords);
-		          System.out.println("Preparing search strings for "+note.get(i) );
-		          
-		    	  ArrayList <String> keywrodssplit = TwitterKeywordSplit.createKeywordAndPhrasesStrings(keywords);
-		    	  
-		    	  System.out.println("Keyword split results: ");
-		    	  
-		    	  for (int j =0; j <keywrodssplit.size();j++) {
-		    		  System.out.println("Keyword list number: " +(j+1) +" " + keywrodssplit.get(j)+"; length " + keywrodssplit.get(j).length());
-		    	  }
-		    	 
-		    //	  ArrayList <Long> previousIDsFromThisSearch = config.getPreviousTweetIDsForIndividualSearches().get(note.get(i));
-		    			  for (int j =0; j <keywrodssplit.size();j++) {
-		    		    SearchObject searchDetails = new SearchObject();
-		    	        searchDetails.setKeywords(keywrodssplit.get(j));
-		    	       
-		    	        LocationEntity location = new LocationEntity();
-		    	        GeoLocation geoLocation = new   GeoLocation(Double.parseDouble(latitude.get(i)), Double.parseDouble(longitude.get(i)));
-		    	        GeoPointEntity geoPoint = new GeoPointEntity(geoLocation);
-		    	        geoPoint.setLocationId(location);
-		    	        location.setGeoPoint(geoPoint);
-		    	        location.setDisplayString(note.get(i));	    	        
-		    	        searchDetails.setRadius(Double.parseDouble(radius.get(i)));
-		    	        
-		    	        if (previousIDsFromThisSearch.size()>j) {
-		    	        	searchDetails.setLastKonwnCachedID(previousIDsFromThisSearch.get(j));
-		    	        }
-		    	        
-		    	        searchDetails.setLocationId(location);
-		    	        searchDetails.setNote(note.get(i));
-		    	        searchDetails.setStartOfSearch(startDate);
-		    	        searches.add(searchDetails);
-		    	   
-		    	        
-		    	        
-		    	        DAO.saveSearchDetails((SearchDetailsEntity) searchDetails);
-		    	  }	  
-		      }
-	        
+		        
+		
+	}
 
-	        //ignore the keywords until config is read properly
-	      
-	        PlatformEntity twitter = DAO.getPlatfromBasedOnName("Twitter");
-	        AppRESTAPI restAPI = new AppRESTAPI(config);
-	   
-	        restAPI.searchKeywordListGeoCodedMultipleSearches(searches);
+	public static void continueSearch(Controller controller,SearchInfoBarVBox  searchInfoBarVBox) {
+		 System.out.println("We will continue " +controller.newSearchObject.getLeafSearches().size()+ " sub searches searches" );
+		 HashMap <String,ArrayList <SearchLeafNodeEntity>> map = controller.newSearchObject.getLeafSearches();
+		  ArrayList<SearchObject> searches = new ArrayList ();
+		 DbDataManager dbDataManager = new DbDataManager(controller);
+         Date startDate = new Date();
+		 for (String key: map.keySet() ) {
+			 System.out.println("For subsearch "+key);
+			 for (int i = 0; i<map.get(key).size();i++) {
+				 System.out.println( map.get(key).get(i).getLeafSearchLabel());
+				 System.out.println( map.get(key).get(i).getKeywords());
+				 System.out.println( map.get(key).get(i).getId());
+			
+				 SearchObject searchDetails = new SearchObject();
+				 
+				
+		         String lastTweetId="";
+		         
+				 try {
+						lastTweetId = dbDataManager.getLatestTweetID(map.get(key).get(i).getLeafSearchLabel());
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		 	      System.out.println("Found "+ lastTweetId);
+		 	      if (!lastTweetId.equals("")) {
+		 	    	  searchDetails.setLastKonwnCachedID(Long.parseLong(lastTweetId));
+		 	      }
+		 	      searchDetails.setSearchLeafNodeId( map.get(key).get(i).getId());
+		 	      searchDetails.setSearchMain(controller.newSearchObject.getMainSearch().getId());
+		 	      searchDetails.setSearchSubNode(map.get(key).get(i).getSearchSubNodeId());
+		 	      searchDetails.setStartOfSearch(startDate);
+		 	      searchDetails.setUniqueID(map.get(key).get(i).getLeafSearchLabel());
+		 	      searchDetails.setLeafNode(map.get(key).get(i));
+				  searches.add(searchDetails);
+				  
+				  DAO.saveSearchDetails(searchDetails,controller);
+			 
+			 }
+		 }
+		 
+		 AppRESTAPI restAPI = new AppRESTAPI(controller);
+		   
+	        restAPI.searchKeywordListGeoCodedMultipleSearches(searches,controller,searchInfoBarVBox);
 	        
 	        
 	        Date endDate = new Date();
+       
 	        
-	     // populate the following however is suitable
-	       
-	        //Looop to add the times
+	        	for (int i = 0; i<searches.size();i++) {
+	        	
+	        		searches.get(i).setEndOfSearch(endDate);
+	        	DAO.saveSearchDetails(searches.get(i),controller);
+	        	}
 	        
-	        
-	        for (int i =0; i< searches.size(); i++) {
-	        	searches.get(i).setEndOfSearch(endDate);
-	        	 DAO.saveSearchDetails((SearchDetailsEntity) searches.get(i));
-	        }
-	      */  
-		
+		 
+		 
+		 
+		 
 		
 	}
 

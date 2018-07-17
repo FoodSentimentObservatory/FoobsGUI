@@ -5,14 +5,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,9 +24,16 @@ import org.hibernate.SessionFactory;
 import collector.db.DAO;
 import collector.entity.PlatformEntity;
 import collector.entity.SearchDetailsEntity;
+import collector.entity.SearchLeafNodeEntity;
+import collector.entity.SearchSubNodeEntity;
 import collector.main.Config;
 import collector.twitter.BaseRESTAPI;
 import controller.Controller;
+import db.DbDataManager;
+import db.SearchInfo;
+import scenes.AbstractSearchProgress;
+import scenes.ContinuedSearchProgress;
+import status.SearchInfoBarVBox;
 import twitter4j.GeoLocation;
 import twitter4j.Paging;
 import twitter4j.Query;
@@ -63,7 +74,7 @@ public class AppRESTAPI extends BaseRESTAPI {
 	}
 
 	//
-	public void saveTweets(Set<Status> tweets, SearchDetailsEntity searchDetails) {
+	public void saveTweets(Set<Status> tweets, SearchObject so) {
 		PlatformEntity twitter = DAO.getPlatfromBasedOnName("Twitter",controller);
 
 		System.out.println("Saving request received for " + tweets.size() + " tweets");
@@ -103,7 +114,7 @@ public class AppRESTAPI extends BaseRESTAPI {
 			System.out.println("Saving : "+i );
 			System.out.println("Saving : "+chunk.size() + "tweets in one transaction" );
 			System.out.println("Start saving at at " + LocalDateTime.now());
-			DAO.saveTweetChunks(chunk,searchDetails,twitter,controller);
+			DAO.saveTweetChunks(chunk,so,twitter,controller);
 			System.out.println("Finished saving at at " + LocalDateTime.now());
 			
 		 
@@ -137,14 +148,19 @@ public class AppRESTAPI extends BaseRESTAPI {
 
 	/**
 	 * 
+	 * @param searches 
+	 * @param controller 
 	 * @param searches
+	 * @param continuedSearchProgress 
 	 */
 
-	public void searchKeywordListGeoCodedMultipleSearches(List<SearchObject> searches) {
+	public void searchKeywordListGeoCodedMultipleSearches( ArrayList<SearchObject> searches, Controller controller, SearchInfoBarVBox infoBar) {
 
 		List<Object[]> result = new ArrayList();
 		// prepare list of QUERIES from SearchOBJECT list
 
+		
+		/*
 		for (SearchObject search : searches) {
 			Query query = new Query();
 
@@ -154,6 +170,10 @@ public class AppRESTAPI extends BaseRESTAPI {
 			System.out.println("Search ID: " + search.getUniqueID());
 			System.out.println("Keywords: " + queryString);
 
+			infoBar.write("\n---------------GENRATING SEARCH QUERY-----------");
+			infoBar.write("Search ID: " + search.getUniqueID());
+			infoBar.write("Search ID: " + search.getUniqueID());
+			
 			query.setQuery(queryString);
 			query.setGeoCode(new GeoLocation(search.getLocationId().getGeoPoint().getLatitude(),
 					search.getLocationId().getGeoPoint().getLongitude()), search.getRadius(), Unit.km);
@@ -168,17 +188,77 @@ public class AppRESTAPI extends BaseRESTAPI {
 			temp[0] = search;
 			temp[1] = query;
 			result.add(temp);
-		}
+		}*/
+		
+		HashMap <String,ArrayList <SearchLeafNodeEntity>> map = controller.newSearchObject.getLeafSearches();
+		
+		
+			
+			 for (int i = 0; i<searches.size();i++) {
+				 Query query = new Query();
 
-		searchMultiple(result);
+				 String queryString = searches.get(i).getLeafNode().getKeywords();
+					
+				 System.out.println("\n---------------GENRATING SEARCH QUERY-----------");
+				 System.out.println("Search ID: " + searches.get(i).getLeafNode().getLeafSearchLabel());
+				 System.out.println("Keywords: " + queryString);
+
+					infoBar.write("\n---------------GENRATING SEARCH QUERY-----------");
+					infoBar.write("Search ID: " + searches.get(i).getLeafNode().getLeafSearchLabel());
+					infoBar.write("Keywords: " + queryString);
+	 
+					query.setQuery(queryString);
+					
+					int subSearchID =searches.get(i).getLeafNode().getSearchSubNodeId();
+					System.out.println("Setting location for subsearchID " +subSearchID);
+					for (SearchSubNodeEntity node : controller.newSearchObject.getSubSearches()) {
+						if (node.getId()==subSearchID) {
+							query.setGeoCode(new GeoLocation(node.getLocationId().getRadius().getLatitude(),
+									node.getLocationId().getRadius().getLongitude()), node.getLocationId().getRadius().getRadius(), Unit.km);
+						}
+					}
+					
+					System.out.println(query);
+					// NO point bothering with any other number as we will
+					// search for all we can get
+					query.setCount(100);
+					query.setLang("en");
+
+					// create a tuple with query and
+					Object temp[] = new Object[2];
+					temp[0] = searches.get(i);
+					temp[1] = query;
+					result.add(temp);
+			 
+			 }
+		
+
+		searchMultiple(result,infoBar);
 	}
 
+	/***
+	 * This should be moved to utils
+	 * 
+	 */
+	public  <T> Stream<List<T>> batches(List<T> source, int length) {
+	    if (length <= 0)
+	        throw new IllegalArgumentException("length = " + length);
+	    int size = source.size();
+	    if (size <= 0)
+	        return Stream.empty();
+	    int fullChunks = (size - 1) / length;
+	    return IntStream.range(0, fullChunks + 1).mapToObj(
+	    		queriesWithSearchDeatils -> source.subList(queriesWithSearchDeatils * length, queriesWithSearchDeatils == fullChunks ? size : (queriesWithSearchDeatils + 1) * length));
+	}
+	
 	/**
 	 * 
 	 * @param queriesWithSearchDeatils
 	 */
 
-	public void searchMultiple(List<Object[]> queriesWithSearchDeatils) {
+	public void searchMultiple(List<Object[]> queriesToPerform, SearchInfoBarVBox infoBar) {
+		
+		
 		// ------------------------------TO BE MOVED-----------
 		// !!! this needs to be moved to connect to twitter and pulled from
 		// config file
@@ -186,7 +266,8 @@ public class AppRESTAPI extends BaseRESTAPI {
 		// !!! this needs to be moved to connect to twitter and pulled from
 		// config file
 		long WINDOW_LENGHT = 900000;
-
+		 batches(queriesToPerform, RATE_LIMIT-1).forEach(
+	        		queriesWithSearchDeatils -> {
 		// -----------------------------------------
 
 		// ------------------------------UTILITY -----------
@@ -221,9 +302,9 @@ public class AppRESTAPI extends BaseRESTAPI {
 
 			SearchObject so = (SearchObject) ((Object[]) queriesWithSearchDeatils.get(i))[0];
 
-			searchWindowResults.put(so.getUniqueID(), new HashSet());
+			searchWindowResults.put(so.getLeafNode().getLeafSearchLabel(), new HashSet());
 
-			allWindowsResults.put(so.getUniqueID(), 0);
+			allWindowsResults.put(so.getLeafNode().getLeafSearchLabel(), 0);
 
 		}
 
@@ -233,12 +314,21 @@ public class AppRESTAPI extends BaseRESTAPI {
         boolean firstRun = true; 
         ArrayList <String> previousSearchesXML = new ArrayList <String> ();
         String tempItem = "";
-		while (true) {
+		
+        //Split queries into chunks < RATe LIMIT so they can be completed at rate one chunk per window
+        
+        //Problem that needs to be fixed here is when we have more tasks (i.e. search queries than the rate limit) search window will not execute. We need to split it
+        
+       
+        
+        while (true) {
 
 			// check when new search started
 			if (newsearch) {
 				System.out.println("\n------------NEW SEARCH WINDOW------------ ");
 				System.out.println("Starting new search window at " + LocalDateTime.now());
+				infoBar.write("\n------------NEW SEARCH WINDOW------------ ");
+				infoBar.write("Starting new search window at " + LocalDateTime.now());
 				searchStart = System.currentTimeMillis();
 				// reset counter
 				requestCounter = 0;
@@ -251,10 +341,14 @@ public class AppRESTAPI extends BaseRESTAPI {
 
 					for (Object[] search : queriesWithSearchDeatils) {
 						SearchObject so = (SearchObject) search[0];
-						UUID idOfSearch = so.getUniqueID();
+						String idOfSearch = so.getLeafNode().getLeafSearchLabel();
 						System.out.println("\n------------SAVING END OF SEARCH WINDOW RESULTS------------ ");
-						System.out.println("Search ID:  " + so.getUniqueID());
-						System.out.println("Group ID: " + so.getId());
+						System.out.println("Search ID:  " + so.getLeafNode().getLeafSearchLabel());
+						System.out.println("Group ID: " + so.getLeafNode().getSearchSubNodeId());
+						
+						infoBar.write("\n------------SAVING END OF SEARCH WINDOW RESULTS------------ ");
+						infoBar.write("Search ID:  " +  so.getLeafNode().getLeafSearchLabel());
+						infoBar.write("Group ID: " + so.getId());
 						saveTweets((HashSet) searchWindowResults.get(idOfSearch), so);
 
 						// reset window results storage variable
@@ -266,21 +360,35 @@ public class AppRESTAPI extends BaseRESTAPI {
 					System.out.println("Request Calls made " + requestCounter);
 					System.out.println("Next loop needs  " + queriesWithSearchDeatils.size() + " requests");
 					System.out.println("Waiting for rate limit to reset.");
+					
+					infoBar.write("\n------------SEARCH WINDOW END------------ ");
+					infoBar.write("\n Rate limit reached at " + LocalDateTime.now());
+					infoBar.write("Request Calls made " + requestCounter);
+					infoBar.write("Next loop needs  " + queriesWithSearchDeatils.size() + " requests");
+					infoBar.write("Waiting for rate limit to reset.");
 					long currTime = System.currentTimeMillis();
 					long searchLenght = currTime - searchStart;
 					System.out.println("Search window took ~ : " + searchLenght / 60000
 							+ "minutes (if output 0 then less than 1 minute)");
+					
+					infoBar.write("Search window took ~ : " + searchLenght / 60000
+							+ "minutes (if output 0 then less than 1 minute)");
 					if (WINDOW_LENGHT - searchLenght + 3000 <= 0) {
 						System.out.println("We wasted  ~ " + ((WINDOW_LENGHT - searchLenght) / 60000)
+								+ "minutes waiting for tweets to save");
+						infoBar.write("We wasted  ~ " + ((WINDOW_LENGHT - searchLenght) / 60000)
 								+ "minutes waiting for tweets to save");
 					} else
 
 					{
 						System.out.println("Will wait for: ~ " + ((WINDOW_LENGHT - searchLenght) / 60000)
-								+ "minutes (if output = 0 then teh search will resume in less than a minute)");
+								+ "minutes (if output = 0 then the search will resume in less than a minute)");
+						infoBar.write("Will wait for: ~ " + ((WINDOW_LENGHT - searchLenght) / 60000)
+								+ "minutes (if output = 0 then the search will resume in less than a minute)");
 
 						Thread.sleep(WINDOW_LENGHT - searchLenght + 3000);
 						System.out.println("Resuming search at " + LocalDateTime.now());
+						infoBar.write("Resuming search at " + LocalDateTime.now());
 						newsearch = true;
 						continue;
 					}
@@ -289,6 +397,8 @@ public class AppRESTAPI extends BaseRESTAPI {
 			} catch (InterruptedException e) {
 				System.out.println("Limit exceded wait Thread in searchAPI broken.");
 				System.out.println(e.getMessage());
+				infoBar.write("Limit exceded wait Thread in searchAPI broken.");
+				infoBar.write(e.getMessage());
 			}
 	
 			// loop to perform all searches
@@ -307,6 +417,7 @@ public class AppRESTAPI extends BaseRESTAPI {
 					Query query = (Query) ((Object[]) queriesWithSearchDeatils.get(i))[1];
 					SearchObject so = (SearchObject) ((Object[]) queriesWithSearchDeatils.get(i))[0];
 
+					/*
 					if (!searchnote.equals(so.getNote())&&firstRun) {
 						if (!searchnote.equals("")) {
 							tempItem = tempItem+"</FirstTweetIDsFromPreviousSearch>";
@@ -317,11 +428,12 @@ public class AppRESTAPI extends BaseRESTAPI {
 						tempItem = tempItem + "----- Cache report for search "+searchnote+"\n";
 						tempItem = tempItem+ "<FirstTweetIDsFromPreviousSearch>";
 						
-					}
+					}*/
 					
 					requestCounter++;
 					result = twitter.search(query);
-
+                    
+                    
 					tweets.addAll(result.getTweets());
 
 					// System.out.println("Result size for search id " +
@@ -332,11 +444,11 @@ public class AppRESTAPI extends BaseRESTAPI {
 					// Tweets for one search)-----------
 					if (result.getTweets().size() == 0) {
 						System.out.println("\n------------COMPLETED SEARCH ALERT------------ ");
-						System.out.println("Search ID:  " + so.getUniqueID());
-						System.out.println("Group ID: " + so.getId());
+						System.out.println("Search ID:  " +  so.getLeafNode().getLeafSearchLabel());
+						System.out.println("Group ID: " + so.getLeafNode().getSearchSubNodeId());
 						System.out.println("No more Tweets found in this search. Marking as complete...");
 						System.out.println("Tweets found in this search window: "
-								+ ((HashSet) searchWindowResults.get(so.getUniqueID())).size());
+								+ ((HashSet) searchWindowResults.get(  so.getLeafNode().getLeafSearchLabel())).size());
 
 						((SearchObject) ((Object[]) queriesWithSearchDeatils.get(i))[0]).setCompleted(true);
 					}
@@ -349,6 +461,8 @@ public class AppRESTAPI extends BaseRESTAPI {
 					
 					
 					
+					
+					System.out.println("Cached ID " + so.getLastKonwnCachedID());
 					for (Status tweet : tweets) {
 						
 						//find the max tweet in the first batch of results for all searches
@@ -369,8 +483,8 @@ public class AppRESTAPI extends BaseRESTAPI {
 						// know
 						if (so.getLastKonwnCachedID() != 0 && tweet.getId() <= so.getLastKonwnCachedID()) {
 							System.out.println("\n------------BEGINING OF CACHED SEARCH FOUND ------------ ");
-							System.out.println("Search ID:  " + so.getUniqueID());
-							System.out.println("Group ID: " + so.getId());
+							System.out.println("Search ID:  " +  so.getLeafNode().getLeafSearchLabel());
+							System.out.println("Group ID: " + so.getLeafNode().getSearchSubNodeId());
 							System.out.println("Tweets " + so.getLastKonwnCachedID()
 									+ " found -> will not search further in the past, so marking as complete");
 							((SearchObject) ((Object[]) queriesWithSearchDeatils.get(i))[0]).setCompleted(true);
@@ -445,11 +559,14 @@ public class AppRESTAPI extends BaseRESTAPI {
 				// ");
 
 				if (so.isCompleted()) {
-					UUID idOfSearch = so.getUniqueID();
+					String idOfSearch = so.getUniqueID();
 					
 					if (!((HashSet) searchWindowResults.get(idOfSearch)).isEmpty()) {
 					System.out.println("\n------------SAVING LAST BATCH OF SEARCH RESULTS------------ ");
 					System.out.println("Search ID:  " + so.getUniqueID());
+					//System.out.println("Note:  " + so.getNote());
+					System.out.println("Note:  " + so.getLastKonwnID());
+					
 					System.out.println("Group ID: " + so.getId());
 					
 					saveTweets((HashSet) searchWindowResults.get(idOfSearch), so);
@@ -465,7 +582,7 @@ public class AppRESTAPI extends BaseRESTAPI {
 
 			
 
-			
+			/*
 			if (firstRun) {
 			tempItem = tempItem+"</FirstTweetIDsFromPreviousSearch>";
 			previousSearchesXML.add(tempItem);
@@ -473,16 +590,17 @@ public class AppRESTAPI extends BaseRESTAPI {
 			//print xml in file to be included in the config next time searchis ran
 			FileUtils.saveCacheReport ( previousSearchesXML);
 			}
-			
+			*/
 			firstRun=false;
 			
 			// IF all searches completed then exit
 						if (queriesWithSearchDeatils.size() == 0) {
-							System.out.println("ALL searches COMPLETED exiting.. ");
+							System.out.println("ALL searches in a search chunk COMPLETED ... ");
 							break;
 						}
 			
 		}
+        		});
 
 	}
 

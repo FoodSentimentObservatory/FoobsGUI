@@ -16,6 +16,7 @@ import java.util.List;
 
 import Const.GlobalConts;
 import collector.entity.SearchDetailsEntity;
+import collector.entity.SearchSubNodeEntity;
 import controller.Controller;
 import db.DbDataManager;
 import db.SearchInfo;
@@ -89,6 +90,29 @@ public class ManageSearches extends BorderPane{
 								String oldValue, String newValue) {
 							
 							System.out.println(newValue);
+							
+							DbDataManager dbManager = new DbDataManager (controller);
+							
+							try {
+								dbManager.updateSearchObject(newValue);
+							} catch (SQLException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							listViewPanel.getChildren().remove(0, listViewPanel.getChildren().size());
+							
+							StringBuilder str = new StringBuilder();
+                             controller.newSearchObject.getSubSearches().forEach((subSearch)->{
+                            	 str.append(((SearchSubNodeEntity)subSearch).getSearchNodeLabel()+"\n");
+							});
+							
+							
+							Text subsearchesText = new Text ("This search contains " +controller.newSearchObject.getSubSearches().size() + " subsearches: \n"+str.toString());
+							listViewPanel.getChildren().add(subsearchesText);
+							
+							/*
+							lastSearches.clear();
+							System.out.println(newValue);
 							if (newValue != null) {
 							listViewPanel.getChildren().remove(0, listViewPanel.getChildren().size());
 							// change the label text value to the newly selected
@@ -157,12 +181,16 @@ public class ManageSearches extends BorderPane{
 							Collections.sort(sortedList);
 							
 							String latestSearchDate = (String) sortedList.get(sortedList.size()-1);
+							if (latestSearchDate!=null) {
+							System.out.println(sortedList);
 							
+							}
 							//HORRIBLE REPETATIVE NEEDs TO CHANGE
 							for (int i =0; i < searches.size(); i++) {
 								 
 								SearchInfo obj =  searches.get(i);
 								if (obj.getMainLabel().equals(newValue)&&obj.getStarted().equals(latestSearchDate)) {	
+									System.out.println (newValue + " "+latestSearchDate + "  "+ obj.getStarted());
 								   keywords.add(obj.getKeywords());
 								   
 								   try {
@@ -178,6 +206,8 @@ public class ManageSearches extends BorderPane{
 								}
 							}
 							
+							System.out.println (lastSearches.size());
+							//System.exit(0);
 						
 							Text txt = new Text("This search was executed " + startDates.size() + " time(s) on the following dates:\n "+sortedList.toString()) ;
 							txt.wrappingWidthProperty().bind(listViewPanel.widthProperty());
@@ -230,6 +260,7 @@ public class ManageSearches extends BorderPane{
 					        
 							
 						}
+						*/
 						}
 					});
 	        
@@ -248,16 +279,15 @@ public class ManageSearches extends BorderPane{
 	 public void loadSearchDetails () {
 		 try {
 			searches = (new DbDataManager (controller).getSearchDetails());
-			
+			ArrayList <String> mainSearchLabels =  new DbDataManager (controller).getMainSearchLabels();
 			list.clear();
 			final Text label = new Text("Nothing Selected.");
 			listViewPanel.getChildren().remove(0, listViewPanel.getChildren().size());
 			listViewPanel.getChildren().add(label);
 			
-			for (int i =0; i < searches.size(); i++) {
-				String searchLabel = ((SearchInfo) searches.get(i)).getMainLabel();
-				if (!list.contains(searchLabel))
-				list.add(searchLabel); 
+			for (int i =0; i < mainSearchLabels.size(); i++) {
+				
+				list.add(mainSearchLabels.get(i)); 
 			}
 			
 		} catch (SQLException e) {
@@ -275,7 +305,7 @@ public class ManageSearches extends BorderPane{
 				
 				Button continueSearch = ElementConstructors.createSmallButtonWithText("Continue this search");
 				continueSearch.setAlignment(Pos.BASELINE_RIGHT);
-				continueSearch.setOnAction(ButtonHandlers.ContinueSearch(controller,lastSearches));
+				continueSearch.setOnAction(ButtonHandlers.ContinueSearch(controller));
 				
 				toolbar = new ToolBar(back,continueSearch);
 			} catch (FileNotFoundException e) {

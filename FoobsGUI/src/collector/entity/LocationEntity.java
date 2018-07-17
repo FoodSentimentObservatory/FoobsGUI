@@ -18,7 +18,7 @@ public class LocationEntity {
    @Id
    @GeneratedValue(strategy=GenerationType.AUTO,generator="native")
    @GenericGenerator(name="native",strategy="native")
-   private Long Id;
+   private int id;
 
    @Column(name="locationType")
    private String locationType;
@@ -27,11 +27,13 @@ public class LocationEntity {
    private String displayString;
 
    
-   @OneToOne(fetch=FetchType.EAGER,mappedBy="locationId",cascade=CascadeType.ALL)
-   private SearchDetailsEntity search;
+   
    
    @OneToOne(fetch=FetchType.LAZY,mappedBy="locationId",cascade=CascadeType.ALL)
    private GeoPointEntity geoPoint;
+   
+   @OneToOne(fetch=FetchType.LAZY,mappedBy="locationId",cascade=CascadeType.ALL)
+   private GeoRadiusEntity geoRadius;
    
    @OneToOne(fetch=FetchType.LAZY,mappedBy="locationId",cascade=CascadeType.ALL)
    private PostEntity post;
@@ -40,9 +42,13 @@ public class LocationEntity {
    /**
     * @return the id
     */
-   public Long getId() {
-      return Id;
+   public int getId() {
+      return id;
    }
+   
+   public void setId(int id) {
+	       this.id = id ;
+	   }
 
    /**
     * @return the locationType
@@ -72,6 +78,20 @@ public class LocationEntity {
       this.displayString = displayString;
    }
 
+   
+   /**
+    * @return the geoPoint
+    */
+   public GeoRadiusEntity getRadius() {
+      return geoRadius;
+   }
+
+   /**
+    * @param geoPoint the geoPoint to set
+    */
+   public void setGeoRadius(GeoRadiusEntity geoRadius) {
+      this.geoRadius = geoRadius;
+   }
 
    /**
     * @return the geoPoint

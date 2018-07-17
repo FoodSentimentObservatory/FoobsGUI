@@ -156,7 +156,7 @@ public class AnalysisWebView extends Scene {
 		
 		Button submit = new Button("Add Radius");
 	//	submit.setOnAction(ButtonHandlers.AddRadius(latField,lonField,radField,listOfSearchRadiuses,listComponents,map,controller,swingNode));
-		submit.setOnAction(ButtonHandlers.AddRadius(latField,lonField,radField,listOfSearchRadiuses,listComponents,webEngine,controller));
+	//	submit.setOnAction(ButtonHandlers.AddRadius(latField,lonField,radField,listOfSearchRadiuses,listComponents,webEngine,controller));
 		
 		inputs.add(submit);
 		
@@ -170,7 +170,7 @@ public class AnalysisWebView extends Scene {
 			Button back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
 			back.setOnAction(ButtonHandlers.Home(controller));
 			Button  next = ElementConstructors.createSmallButtonWithText("Next");
-			next.setOnAction(ButtonHandlers.SearchNewKeywords(controller));
+			//next.setOnAction(ButtonHandlers.SearchNewKeywords(controller));
 			toolbar = new ToolBar(back,next);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

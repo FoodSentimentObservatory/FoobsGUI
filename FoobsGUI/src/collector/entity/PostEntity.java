@@ -54,9 +54,13 @@ public class PostEntity {
 	@JoinColumn(name = "hasCreator")
 	private UserAccountEntity hasCreator;
 
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "SearchId")
-	private SearchDetailsEntity searchDetailsId;
+	@Column(name = "LeafNodeId")
+	private String leafNodeId;
+	
+	@Column(name = "GeneratedBySearch")
+	private int generatedBySearch;
+
+	
 
 	public PostEntity() {
 	}
@@ -67,11 +71,13 @@ public class PostEntity {
 		this.createdAt = tweet.getCreatedAt();
 		this.importedAt = new Date();
 		this.platformPostID = Long.toString(tweet.getId());
+		/* Need to fix
 		if (tweet.getGeoLocation() != null) {
 			this.locationId = new LocationEntity();
 			this.locationId.setDisplayString(tweet.getGeoLocation().toString());
 			this.locationId.setGeoPoint(new GeoPointEntity(tweet.getGeoLocation()));
 		}
+		*/
 	}
 	/*
 	public PostEntity(NewsArticle newsarticle) {
@@ -189,12 +195,12 @@ public class PostEntity {
 		this.platformPostID = platformPostID;
 	}
 
-	public SearchDetailsEntity getSearchDetailsId() {
-		return searchDetailsId;
+	public String getgetLeafNodeId() {
+		return leafNodeId;
 	}
 
-	public void setSearchDetailsId(SearchDetailsEntity searchDetailsId) {
-		this.searchDetailsId = searchDetailsId;
+	public void setLeafNodeId(String searchDetailsId) {
+		this.leafNodeId = searchDetailsId;
 
 	}
 
@@ -206,5 +212,11 @@ public class PostEntity {
 		this.locationId = locationId;
 	}
 
+	public int getGeneratedBySearch() {
+		return generatedBySearch;
+	}
 
+	public void setGeneratedBySearch(int generatedBySearch) {
+		this.generatedBySearch = generatedBySearch;
+	}
 }

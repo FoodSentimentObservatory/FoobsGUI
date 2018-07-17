@@ -27,29 +27,48 @@ public class SearchDetailsEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
 	@GenericGenerator(name = "native", strategy = "native")
-	private Long id;
+	private int id;
 
 	@Column(name = "StartOfSearch")
 	private Date startOfSearch;
 	@Column(name = "EndOfSearch")
 	private Date endOfSearch;
-	@Column(name = "Keywords")
-	private String keywords;
-	@Column(name = "Note")
-	private String note;
-	@Column(name = "Radius")
+	@Column(name = "SearchMain")
+	private int searchMain;
+	@Column(name = "SearchSubNode")
+	private int searchSubNode;
+	@Column(name = "SearchLeafNode")
+	private int searchLeafNode;
 
-	private double radius;
-
-
-	@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "locationId")
-	private LocationEntity locationId;
 
 	//@OneToMany(fetch = FetchType.LAZY, mappedBy = "searchDetailsId", cascade = CascadeType.ALL)
 	//private Set<PostEntity> posts = new HashSet<PostEntity>();
 
-	public Long getId() {
+	public int getSearchMain() {
+		return searchMain;
+	}
+
+	public void setSearchMain(int searchMain) {
+		this.searchMain = searchMain;
+	}
+
+	public int getSearchSubNode() {
+		return searchSubNode;
+	}
+
+	public void setSearchSubNode(int searchSubNode) {
+		this.searchSubNode = searchSubNode;
+	}
+
+	public int getSearchLeafNodeId() {
+		return searchLeafNode;
+	}
+
+	public void setSearchLeafNodeId(int searchLeafNode) {
+		this.searchLeafNode = searchLeafNode;
+	}
+
+	public int getId() {
 		return id;
 	}
 
@@ -69,45 +88,5 @@ public class SearchDetailsEntity {
 		this.endOfSearch = endOfSearch;
 	}
 
-	public String getKeywords() {
-		return keywords;
-	}
-
-	public void setKeywords(String keywords) {
-		this.keywords = keywords;
-	}
-
-	public String getNote() {
-		return note;
-	}
-
-	public void setNote(String note) {
-		this.note = note;
-	}
-
-	public LocationEntity getLocationId() {
-		return locationId;
-	}
-
-	public void setLocationId(LocationEntity locationId) {
-		this.locationId = locationId;
-	}
-
-
-	public double getRadius() {
-		return radius;
-	}
-
-	public void setRadius(double radius2) {
-		this.radius = radius2;
-
-	}
-
-//	public Set<PostEntity> getPosts() {
-	//	return posts;
-//	}
-
-//	public void setPosts(Set<PostEntity> posts) {
-	//	this.posts = posts;
-//	}
+	
 }

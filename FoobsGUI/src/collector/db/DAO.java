@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.Column;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -16,14 +18,19 @@ import collector.entity.AgentEntity;
 import collector.entity.PlatformEntity;
 import collector.entity.PostEntity;
 import collector.entity.SearchDetailsEntity;
+import collector.entity.SearchLeafNodeEntity;
+import collector.entity.SearchMainEntity;
+import collector.entity.SearchSubNodeEntity;
 import collector.entity.UserAccountEntity;
+import collector.twitter.app.SearchObject;
 import controller.Controller;
+import status.NewSearchObject;
 import twitter4j.Status;
 
 public class DAO {
 
 
-	public static void saveTweetChunks( Set<Status> tweets, SearchDetailsEntity searchDetails, PlatformEntity platformEntity, Controller controller) {
+	public static void saveTweetChunks( Set<Status> tweets, SearchObject searchDetails, PlatformEntity platformEntity, Controller controller) {
         Session session = controller.getSessionFactory().getCurrentSession();
         
         Transaction transaction = session.beginTransaction();
@@ -57,14 +64,15 @@ public class DAO {
 		
 		session.saveOrUpdate(basicUser);
 
-      
+             //System.out.println(tweet.getId());
         	 PostEntity post = new PostEntity(tweet);
         	 if (post.getLocationId()!=null) {
-        		 session.saveOrUpdate(post.getLocationId());
-        		 session.saveOrUpdate(post.getLocationId().getGeoPoint());
+        		// session.saveOrUpdate(post.getLocationId());
+        		// session.saveOrUpdate(post.getLocationId().getGeoPoint());
         	 }
                     post.setHasCreator(basicUser);
-                    post.setSearchDetailsId(searchDetails);
+                    post.setLeafNodeId(searchDetails.getLeafNode().getLeafSearchLabel());
+                    post.setGeneratedBySearch(searchDetails.getId());
                     session.saveOrUpdate(post);
 		  }            
                     
@@ -81,87 +89,49 @@ public class DAO {
 	
 	
 	
+
 	
 	
-	public static void saveTweetMultithread( Status tweet, SearchDetailsEntity searchDetails, PlatformEntity platformEntity,SessionFactory factory) {
-        Session session = factory.getCurrentSession();
-        
-        UserAccountEntity userAccount = null;
-        UserAccountEntity basicUser = new UserAccountEntity(tweet.getUser());
+	public static void saveNewSearchObject( Controller controller){
+		NewSearchObject searchObject = controller.newSearchObject;
+		if (searchObject!=null) {
+		Session session = controller.getSessionFactory().openSession();
 		Transaction transaction = session.beginTransaction();
-		
-		
-		String hql = "from UserAccountEntity uae where uae.platformAccountId=:paid and uae.platformId=:pid";
-        
-		  try {
-			  
-		List<UserAccountEntity> results = session.createQuery(hql, UserAccountEntity.class)
-				.setParameter("paid", basicUser.getPlatformAccountId())
-				.setParameter("pid", platformEntity)
-				.getResultList();
-		if (results.size() > 0) {
-			userAccount = results.get(0);
+
+		try {
+			SearchMainEntity main = searchObject.getMainSearch();
+			session.saveOrUpdate(searchObject.getMainSearch());
+			for (int i =0; i<searchObject.getSubSearches().size();i++) {
+				SearchSubNodeEntity subSearch = searchObject.getSubSearches().get(i);
+				subSearch.setSearchMainId(main.getId());
+				session.saveOrUpdate(subSearch);
+				
+				if (subSearch.getLocationId().getRadius()!=null) {
+					session.saveOrUpdate(subSearch.getLocationId().getRadius());
+				}
+				
+				ArrayList <SearchLeafNodeEntity> leafSearches = searchObject.getLeafSearches().get(subSearch.getSearchNodeLabel());
+				for (int j =0;j<leafSearches.size();j++) {
+					leafSearches.get(j).setSearchSubNodeId(subSearch.getId());
+					session.saveOrUpdate(leafSearches.get(j));
+				}
+				
+			}
+			session.getTransaction().commit();
+		} catch (Exception e) {
+			transaction.rollback();
+			e.printStackTrace();
+		} finally {
+			session.close();
 		}
-		
-		
-			// new user to the system, so initialise it
-			basicUser.setPlatformId(platformEntity);
-			AgentEntity agent = new AgentEntity();
-			agent.setAgentType("Person");
-			basicUser.setAgentId(agent);
-		 
-		
-		
-		session.saveOrUpdate(basicUser);
-
-      
-        	 PostEntity post = new PostEntity(tweet);
-        	 if (post.getLocationId()!=null) {
-        		 session.saveOrUpdate(post.getLocationId());
-        		 session.saveOrUpdate(post.getLocationId().getGeoPoint());
-        	 }
-                    post.setHasCreator(basicUser);
-                    post.setSearchDetailsId(searchDetails);
-                    session.saveOrUpdate(post);
-                    session.getTransaction().commit();
-        } catch (Exception e) {
-                    transaction.rollback();
-                    e.printStackTrace();
-        } finally {
-                    session.close();
-        }
-}
+		}
+	}
 	
-	
-	public static void saveTweet(UserAccountEntity user, Status tweet, SearchDetailsEntity searchDetails, Controller controller) {
-        Session session = controller.getSessionFactory().getCurrentSession();
-     
-        Transaction transaction = session.beginTransaction();
-
-        try {
-        	 PostEntity post = new PostEntity(tweet);
-        	 if (post.getLocationId()!=null) {
-        		 session.saveOrUpdate(post.getLocationId());
-        		 session.saveOrUpdate(post.getLocationId().getGeoPoint());
-        	 }
-                    post.setHasCreator(user);
-                    post.setSearchDetailsId(searchDetails);
-                    session.saveOrUpdate(post);
-                    session.getTransaction().commit();
-        } catch (Exception e) {
-                    transaction.rollback();
-                    e.printStackTrace();
-        } finally {
-                    session.close();
-        }
-}
 	public static void saveSearchDetails(SearchDetailsEntity searchDetails, Controller controller){
 				Session session = controller.getSessionFactory().openSession();
 				Transaction transaction = session.beginTransaction();
-		
+		        System.out.println("Search subnode" +searchDetails.getSearchSubNode() );
 				try {
-					session.saveOrUpdate(searchDetails.getLocationId());
-					session.saveOrUpdate(searchDetails.getLocationId().getGeoPoint());
 					session.saveOrUpdate("collector.entity.SearchDetailsEntity",searchDetails);
 					session.getTransaction().commit();
 				} catch (Exception e) {

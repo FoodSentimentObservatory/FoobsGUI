@@ -16,7 +16,7 @@ import org.hibernate.annotations.GenericGenerator;
 import twitter4j.GeoLocation;
 
 @Entity
-@Table(name="GeoPoint")
+@Table(name="GeoRadiusEntity")
 public class GeoPointEntity {
    @Id
    @GeneratedValue(strategy=GenerationType.AUTO,generator="native")

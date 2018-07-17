@@ -65,6 +65,7 @@ public class Main extends Application {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+		                    	controller.getSessionFactory().close();
 		                    }
 		                    System.exit(0);
 		                }

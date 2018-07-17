@@ -8,10 +8,13 @@ import org.hibernate.SessionFactory;
 
 import Const.GlobalConts;
 import collector.main.SearchManager;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import status.InfoBarHBox;
+import status.NewSearchObject;
 
 public class Controller {
      
@@ -21,6 +24,7 @@ public class Controller {
 	 public InfoBarHBox topInfoBar = new InfoBarHBox (); 
 	 public SessionFactory sessionFactory;
 	 public String dbName ="";
+	public NewSearchObject newSearchObject;
 	 
 	 public Controller (Stage primaryStage) {
 		 this.primaryStage = primaryStage;
@@ -52,7 +56,13 @@ public class Controller {
 		
 	}
 	
-	public void setSearchNewGeolocation(Stage primaryStage) {
+	public void setSearchNewGeolocation(Stage primaryStage, boolean clearCache) {
+		if (clearCache) {
+		scenes.searchNewGeolocation.clearSubsearches();
+		// TO do need to reset inputs too
+		}
+		
+		
 		this.primaryStage.setScene(scenes.searchNewGeolocation);
 		this.primaryStage.show();
 		
@@ -118,8 +128,28 @@ public class Controller {
 		return GlobalConts.consumerSecret;
 	}
 
-	public void continueSearch(ArrayList lastSearches) {
-		SearchManager.continueSearch(lastSearches, this);
+	public void continueSearch() {
+		
+	 
+		 ((BorderPane)this.primaryStage.getScene().getRoot()).setCenter(scenes.continuedSearchProgress);
+	   
+		 Task loadDatesFromDB = new Task<Void>() {
+		        @Override
+		        protected Void call() throws Exception {
+		        	 
+		              SearchManager.continueSearch( Controller.this,scenes.continuedSearchProgress.getSearchInfoBarVBox());
+			    	
+		            return null;
+		             
+			    	 }            
+		    };
+		    new Thread(loadDatesFromDB).start();  
+		 
+		
+	}
+
+	public void setNEwSearchObject(NewSearchObject obj) {
+		this.newSearchObject = obj;
 		
 	}
 	 

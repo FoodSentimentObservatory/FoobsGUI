@@ -15,6 +15,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import collector.entity.SearchDetailsEntity;
+import collector.entity.SearchLeafNodeEntity;
 
 
 
@@ -22,13 +23,23 @@ import collector.entity.SearchDetailsEntity;
 public class SearchObject extends SearchDetailsEntity{
 	
 
-	public UUID uniqueID;
+	public String uniqueID;
 
 	public boolean completed =false;
 	
-	
+	private SearchLeafNodeEntity leafNode;
 	
 	//default max value so we get the most recent tweet available - i.e. new search
+
+	public SearchLeafNodeEntity getLeafNode() {
+		return leafNode;
+	}
+
+
+	public void setLeafNode(SearchLeafNodeEntity leafNode) {
+		this.leafNode = leafNode;
+	}
+
 
 	public long lastKonwnID=Long.MAX_VALUE;
 	//optional set if some searches were were performed  previously 
@@ -37,12 +48,15 @@ public class SearchObject extends SearchDetailsEntity{
 	public long lastKonwnCachedID=0;
 	
 	public SearchObject () {
-		this.uniqueID = UUID.randomUUID();
+		
 	}
 	
 
-
-	public UUID getUniqueID() {
+	public void setUniqueID(String string) {
+		this.uniqueID = string;
+	}
+	
+	public String getUniqueID() {
 		return uniqueID;
 	}
 

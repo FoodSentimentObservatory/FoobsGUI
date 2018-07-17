@@ -14,6 +14,7 @@ import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 
 import Const.GlobalConts;
+import collector.entity.SearchSubNodeEntity;
 import controller.Controller;
 import handlers.ButtonHandlers;
 import javafx.embed.swing.SwingNode;
@@ -39,7 +40,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-
+import status.NewSearchObject;
 import utils.ElementConstructors;
 import utils.ElementManipulators;
 
@@ -48,6 +49,8 @@ public class NewSearchScreenGeolocation extends Scene {
 	private FlowPane listOfSearchRadiuses;
 	private ArrayList listComponents = new ArrayList ();
 	private Controller controller;
+	private NewSearchObject newSearchObject ;
+	private ArrayList <SearchSubNodeEntity> subSearches = new ArrayList <SearchSubNodeEntity> () ;
 
 //	final SwingNode swingNode = new SwingNode();
 	WebEngine webEngine;
@@ -59,6 +62,9 @@ public class NewSearchScreenGeolocation extends Scene {
 		
 	}
     
+	public void clearSubsearches () {
+		subSearches.clear();
+	}
 	
 	private void createLayout () throws Exception {
 		
@@ -198,7 +204,15 @@ public class NewSearchScreenGeolocation extends Scene {
 		
 		ArrayList inputs = new ArrayList ();
 			
-	
+		Label subLabel = new Label("Label:");
+		TextField subField = new TextField ();
+		inputs.add(subLabel);
+		inputs.add(subField);
+		
+		Label descLabel = new Label("Label:");
+		TextField descField = new TextField ();
+		inputs.add(descLabel);
+		inputs.add(descField);
 		
 		Label latLabel = new Label("Lat:");
 		TextField latField = new TextField ();
@@ -217,7 +231,7 @@ public class NewSearchScreenGeolocation extends Scene {
 		
 		Button submit = new Button("Add Radius");
 	//	submit.setOnAction(ButtonHandlers.AddRadius(latField,lonField,radField,listOfSearchRadiuses,listComponents,map,controller,swingNode));
-		submit.setOnAction(ButtonHandlers.AddRadius(latField,lonField,radField,listOfSearchRadiuses,listComponents,webEngine,controller));
+		submit.setOnAction(ButtonHandlers.AddRadius(subField,descField,latField,lonField,radField,listOfSearchRadiuses,listComponents,webEngine,controller,subSearches));
 		
 		inputs.add(submit);
 		
@@ -231,7 +245,7 @@ public class NewSearchScreenGeolocation extends Scene {
 			Button back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
 			back.setOnAction(ButtonHandlers.SearchMain(controller));
 			Button  next = ElementConstructors.createSmallButtonWithText("Next");
-			next.setOnAction(ButtonHandlers.SearchNewKeywords(controller));
+			next.setOnAction(ButtonHandlers.SearchNewKeywords(controller,subSearches));
 			toolbar = new ToolBar(back,next);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

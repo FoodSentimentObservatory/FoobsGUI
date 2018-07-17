@@ -6,7 +6,7 @@ public class GlobalConts {
 
 	
 	public  static int MAIN_WINDOW_HEIGHT = 600;
-	public static int MAIN_WINDOW_WIDTH = 800;
+	public static int MAIN_WINDOW_WIDTH = 1000;
 	public static Color MAIN_WINDOW_COLOR = Color.GHOSTWHITE;
 	
 	public  static int BIG_BUTTON_HEIGHT = 150;

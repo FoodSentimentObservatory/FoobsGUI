@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import Const.GlobalConts;
+import collector.entity.SearchMainEntity;
 import controller.Controller;
 import handlers.ButtonHandlers;
 import javafx.geometry.Insets;
@@ -23,6 +24,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
+import status.NewSearchObject;
 import utils.ElementConstructors;
 
 public class NewSearchScreenSearchName extends Scene{
@@ -61,10 +63,15 @@ public class NewSearchScreenSearchName extends Scene{
 		// TODO Auto-generated method stub
 		Label label = new Label ("Enter new search name");
 		TextField searchName = new TextField ();
+		Label labelDescription = new Label ("Enter new search description");
+		TextField searchdescription = new TextField ();
+		
 		Button next = new Button ("Next");
-		next.setOnAction(ButtonHandlers.SearchNewGeolocation(controller));
+		next.setOnAction(ButtonHandlers.SearchNewGeolocation(controller,searchName, searchdescription));
 		elements.add(label);
 		elements.add(searchName);
+		elements.add(labelDescription);
+		elements.add(searchdescription);
 		elements.add(next);
 		
 		return elements;

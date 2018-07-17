@@ -3,9 +3,6 @@
 
       <property name="connection.driver_class">com.microsoft.sqlserver.jdbc.SQLServerDriver</property>
        <property name="connection.pool_size">200</property>
-
-
-
       <property name="show_sql">false</property>
       <property name="current_session_context_class">thread</property>
 
@@ -19,7 +16,12 @@
       <mapping class="collector.entity.UserAccountEntity"/>
       <mapping class="collector.entity.PostEntity"/>
       <mapping class="collector.entity.SearchDetailsEntity"/>
+       <mapping class="collector.entity.GeoRadiusEntity"/>
       <mapping class="collector.twitter.app.SearchObject"/>
+      <mapping class="collector.entity.SearchDetailsNew"/>
+      <mapping class="collector.entity.SearchMainEntity"/>
+      <mapping class="collector.entity.SearchSubNodeEntity"/>
+      <mapping class="collector.entity.SearchLeafNodeEntity"/>
 
 
    </session-factory>
