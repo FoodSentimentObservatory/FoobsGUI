@@ -7,7 +7,9 @@ import javafx.scene.Scene;
 import scenes.AnalysisWebView;
 import scenes.ContinuedSearchProgress;
 import scenes.DbConnMain;
+
 import scenes.HomeScreen;
+import scenes.Login;
 import scenes.ManageSearches;
 import scenes.NewSearchScreenGeolocation;
 import scenes.NewSearchScreenKeywords;
@@ -21,10 +23,11 @@ public class SceneBuilder {
 	public NewSearchScreenGeolocation searchNewGeolocation;
 	public Scene searchNewSearchName; 
 	public Scene searchNewKeywords;
-	public Scene analysis;
+	public AnalysisWebView analysis;
 	public Scene databaseConfig; 
 	public ManageSearches manageSearches; 
 	public ContinuedSearchProgress continuedSearchProgress;
+	public Login login;
 	
 	public SceneBuilder (Controller controller) throws Exception {
 		this.homeScene = new HomeScreen(new Group(), GlobalConts.MAIN_WINDOW_WIDTH,GlobalConts.MAIN_WINDOW_HEIGHT,  GlobalConts.MAIN_WINDOW_COLOR,controller);
@@ -38,6 +41,7 @@ public class SceneBuilder {
 		//new way of creating views -> previous ones need to be changed
 		this.manageSearches = new ManageSearches (controller);
 		this.continuedSearchProgress = new ContinuedSearchProgress (controller);
+		this.login = new Login (controller);
 	}
 	
 }

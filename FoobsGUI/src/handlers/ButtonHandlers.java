@@ -31,6 +31,9 @@ import collector.entity.SearchSubNodeEntity;
 import collector.main.SearchManager;
 import controller.Controller;
 import db.DbConn;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker.State;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -42,6 +45,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -51,15 +55,18 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebEngine;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import scenes.AnalysisWebView;
 import status.NewSearchObject;
 import twitter4j.GeoLocation;
 import utils.ElementConstructors;
 import utils.ElementManipulators;
+import utils.PasswordHandlers;
 import utils.TwitterKeywordSplit;
 import utils.TwitterKeywordSplitNew;
 
@@ -456,6 +463,104 @@ public class ButtonHandlers {
 		    }
 		};
 		return eventHandler;
+	}
+
+
+	public static EventHandler<ActionEvent> SubmitFormInAnalysisWindow(Controller controller, WebEngine webEngine, AnalysisWebView analysisWebView) {
+		EventHandler<ActionEvent> eventHandler = new EventHandler<ActionEvent>() {
+		    @Override public void handle(ActionEvent e) {
+		       
+		       
+		       webEngine.executeScript("next()");
+		       webEngine.getLoadWorker().stateProperty().addListener(
+		    	        new ChangeListener<State>() {
+		    	            public void changed(ObservableValue ov, State oldState, State newState) {
+		    	                if (newState == State.SUCCEEDED) {
+		    	                	if (webEngine.getLocation().equals("http://localhost:8080/connectToScript")) {
+		    	     		    	   //change screens and present choice here 
+		    	     		    	   //controller.setFrequencyAnalysisOption (webEngine);
+		    	     		    	   analysisWebView.setFrequencyAnalysisToolBar();
+		    	     		    	   System.out.println("Trying to change toolbar");
+		    	     		       }  
+		    	                }
+		    	            }
+		    	        });
+		       
+		       
+		    }
+		 		};
+		 		return eventHandler;
+	}
+	
+	public static EventHandler<ActionEvent> SubmitFrequencyAnalysisOption(Controller controller, WebEngine webEngine, AnalysisWebView analysisWebView, String option) {
+		EventHandler<ActionEvent> eventHandler = new EventHandler<ActionEvent>() {
+		    @Override public void handle(ActionEvent e) {
+		      
+		       webEngine.executeScript("next('"+option+"')");
+		       //controller.setAnalysis(controller.primaryStage);
+		       webEngine.getLoadWorker().stateProperty().addListener(
+		    	        new ChangeListener<State>() {
+		    	            public void changed(ObservableValue ov, State oldState, State newState) {
+		    	                if (newState == State.SUCCEEDED) {
+		    	                	
+		    	     		    	   //change screens and present choice here 
+		    	     		    	   //controller.setFrequencyAnalysisOption (webEngine);
+		    	     		    	   analysisWebView.setGenerateEvidenceToolBar();
+		    	     		    	   System.out.println("Trying to change toolbar");
+		    	     		       
+		    	                }
+		    	            }
+		    	        });
+		       
+		    }
+		 		};
+		 		return eventHandler;
+	}
+
+
+	public static EventHandler<ActionEvent> SubmitGenerateEvidence(Controller controller, WebEngine webEngine,  AnalysisWebView analysisWebView
+			) {
+		
+		
+		EventHandler<ActionEvent> eventHandler = new EventHandler<ActionEvent>() {
+		    @Override public void handle(ActionEvent e) {
+		      
+		       webEngine.executeScript("submitGenerateEvidenceForm()");
+		       //controller.setAnalysis(controller.primaryStage);
+		      
+		    }
+		 		};
+		 		return eventHandler;
+	}
+
+
+	public static EventHandler<ActionEvent> Login(Text actiontarget, TextField userTextField, PasswordField pwBox, Controller controller) {
+		 
+		EventHandler<ActionEvent> eventHandler = new EventHandler<ActionEvent>() {
+		    @Override public void handle(ActionEvent e) {
+		   
+		    	System.out.print("Hey"+userTextField.getText());
+		    	System.out.print("Hey"+pwBox.getText());
+		    	 boolean loggedIn = false ;
+		    	if (!userTextField.getText().equals("")&&!pwBox.getText().equals("") ) {
+		    			 loggedIn = PasswordHandlers.checkPasswordInDatabase(userTextField.getText(),pwBox.getText(), controller );
+		    	}
+		    
+		     if (loggedIn) {
+		    	controller.setHome();
+		     }
+		     else {
+		    	 actiontarget.setFill(Paint.valueOf("Red"));
+		         actiontarget.setText("Invalid credentials");
+		     }
+		       //controller.setAnalysis(controller.primaryStage);
+		      
+		    }
+		 		};
+		 		return eventHandler;
+		
+		
+		
 	}
 	
 }

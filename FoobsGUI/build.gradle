@@ -10,6 +10,7 @@ dependencies {
    compile 'org.twitter4j:twitter4j-stream:4.0.6'
    compile 'com.microsoft.sqlserver:mssql-jdbc:6.1.0.jre8'
    compile 'org.hibernate:hibernate-core:5.2.10.Final'
+   compile group: 'org.apache.jena', name: 'apache-jena-libs', version: '3.8.0', ext: 'pom'
  //  compile 'javax.persistence:persistence-api:1.0.2'
    compile group: 'commons-io', name: 'commons-io', version: '2.5'
 }

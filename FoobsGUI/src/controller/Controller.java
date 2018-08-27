@@ -11,10 +11,14 @@ import collector.main.SearchManager;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
 import status.InfoBarHBox;
 import status.NewSearchObject;
+import status.User;
 
 public class Controller {
      
@@ -24,6 +28,7 @@ public class Controller {
 	 public InfoBarHBox topInfoBar = new InfoBarHBox (); 
 	 public SessionFactory sessionFactory;
 	 public String dbName ="";
+	 public User user;
 	public NewSearchObject newSearchObject;
 	 
 	 public Controller (Stage primaryStage) {
@@ -81,8 +86,22 @@ public class Controller {
 	}
 
 	public void setAnalysis(Stage primaryStage2) {
-		this.primaryStage.setScene(scenes.analysis);
-		this.primaryStage.show();
+		//not connected to database
+		if (dbName.equals("")) {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("Database Connection Missing");
+			alert.setHeaderText(null);
+			alert.setContentText("Please first connect to a database containing the data you want to analyse. Click on the Settings icon on the right to connect.");
+			alert.showAndWait();
+		}
+		else {
+	    scenes.analysis.setDB(dbName);	
+	    
+		((BorderPane)this.primaryStage.getScene().getRoot()).setCenter(scenes.analysis.getRoot());
+		}
+		
+		//this.primaryStage.setScene(scenes.analysis);
+		//this.primaryStage.show();
 		
 	}
 
@@ -152,5 +171,12 @@ public class Controller {
 		this.newSearchObject = obj;
 		
 	}
+
+	public void setLogin() {
+		((BorderPane)this.primaryStage.getScene().getRoot()).setCenter(scenes.login);
+		
+	}
+
+	
 	 
 }

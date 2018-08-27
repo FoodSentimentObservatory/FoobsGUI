@@ -35,7 +35,8 @@ public class AnalysisWebView extends Scene {
 	private FlowPane listOfSearchRadiuses;
 	private ArrayList listComponents = new ArrayList ();
 	private Controller controller;
-	
+	ToolBar toolbar;
+	 BorderPane border;
 	
 	
 	
@@ -56,18 +57,19 @@ public class AnalysisWebView extends Scene {
 		 WebView browser = new WebView();
          webEngine = browser.getEngine();
          
-         webEngine.load("http://localhost:8080");
+         //need to add check whether the python server is running if not then start it
+        // webEngine.load("http://localhost:8080");
          //webEngine.loadContent("http://localhost:8080");
        
         Group root = (Group)this.getRoot();
         
-        BorderPane border = new BorderPane();
+        border = new BorderPane();
         //System.out.println(controller.getScene());
         border.prefHeightProperty().bind(controller.primaryStage.heightProperty());
         border.prefWidthProperty().bind(controller.primaryStage.widthProperty());
         
         //border.setPrefSize(GlobalConts.MAIN_WINDOW_WIDTH, GlobalConts.MAIN_WINDOW_HEIGHT);        
-        ToolBar toolbar = createtoolBar();
+        toolbar = createtoolBar();
         toolbar.setPrefHeight(50);
         
         border.setTop(toolbar);
@@ -75,10 +77,7 @@ public class AnalysisWebView extends Scene {
         //addStackPane(hbox);         // Add stack to HBox in top region
         
         
-        border.setCenter(browser);  
-       
-   
-        
+        border.setCenter(browser);    
         root.getChildren().add(border);
         
         
@@ -104,63 +103,8 @@ public class AnalysisWebView extends Scene {
 	
 	
 	
-	
-    private ArrayList  createSearchListInput () {
-		
-		ArrayList inputs = new ArrayList ();
-			
-	
-		
-		Label latLabel = new Label("Lat:");
-		TextField latField = new TextField ();
-		inputs.add(latLabel);
-		inputs.add(latField);
-		
-		Label lonLabel = new Label("Lon:");
-		TextField lonField = new TextField ();
-		inputs.add(lonLabel);
-		inputs.add(lonField);
-		
-		Label radiusLabel = new Label("Radius:");
-		TextField radField = new TextField ();
-		inputs.add(radiusLabel);
-		inputs.add(radField);
-		
-		Button submit = new Button("Submit");
-		inputs.add(submit);
-		
-		return inputs;
-	}
-	
-	
-	private ArrayList  createRadiusInput () {
-		
-		ArrayList inputs = new ArrayList ();
-			
-	
-		
-		Label latLabel = new Label("Lat:");
-		TextField latField = new TextField ();
-		inputs.add(latLabel);
-		inputs.add(latField);
-		
-		Label lonLabel = new Label("Lon:");
-		TextField lonField = new TextField ();
-		inputs.add(lonLabel);
-		inputs.add(lonField);
-		
-		Label radiusLabel = new Label("Radius:");
-		TextField radField = new TextField ();
-		inputs.add(radiusLabel);
-		inputs.add(radField);
-		
-		Button submit = new Button("Add Radius");
-	//	submit.setOnAction(ButtonHandlers.AddRadius(latField,lonField,radField,listOfSearchRadiuses,listComponents,map,controller,swingNode));
-	//	submit.setOnAction(ButtonHandlers.AddRadius(latField,lonField,radField,listOfSearchRadiuses,listComponents,webEngine,controller));
-		
-		inputs.add(submit);
-		
-		return inputs;
+	public void setDB (String dbName) {
+		webEngine.load("http://localhost:8080/?db_name="+dbName);
 	}
 	
 	private ToolBar  createtoolBar () {
@@ -170,7 +114,7 @@ public class AnalysisWebView extends Scene {
 			Button back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
 			back.setOnAction(ButtonHandlers.Home(controller));
 			Button  next = ElementConstructors.createSmallButtonWithText("Next");
-			//next.setOnAction(ButtonHandlers.SearchNewKeywords(controller));
+			next.setOnAction(ButtonHandlers.SubmitFormInAnalysisWindow(controller,webEngine,this));
 			toolbar = new ToolBar(back,next);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -179,6 +123,49 @@ public class AnalysisWebView extends Scene {
 		
 		
 		return toolbar;
+	}
+	
+	public void setFrequencyAnalysisToolBar () {
+		
+		ToolBar toolbar = null;
+		try {
+			Button back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
+			back.setOnAction(ButtonHandlers.Home(controller));
+			Button  simple = ElementConstructors.createSmallButtonWithText("Simple Frequency");
+			Button  n_grams = ElementConstructors.createSmallButtonWithText("N-Grams");
+			simple.setOnAction(ButtonHandlers.SubmitFrequencyAnalysisOption(controller, webEngine,this, "simple"));
+			n_grams.setOnAction(ButtonHandlers.SubmitFrequencyAnalysisOption(controller, webEngine, this, "n-gram"));
+			
+			toolbar = new ToolBar(back,simple,n_grams);
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		this.toolbar = toolbar;
+		border.setTop(toolbar);
+	}
+       public void setGenerateEvidenceToolBar () {
+		System.out.println("changing toolbar -evidence");
+		ToolBar toolbar = null;
+		try {
+			Button back = ElementConstructors.createSmallButtonWithImage(new Image(new FileInputStream(new File (System.getProperty("user.dir")+File.separator+"icons"+File.separator+"left.png"))),"Back");
+			back.setOnAction(ButtonHandlers.Home(controller));
+			Button  generateEvidence = ElementConstructors.createSmallButtonWithText("Generate Evidence");
+			
+			generateEvidence.setOnAction(ButtonHandlers.SubmitGenerateEvidence(controller, webEngine, this));
+			
+			
+			toolbar = new ToolBar(back,generateEvidence);
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		this.toolbar = toolbar;
+		border.setTop(toolbar);
 	}
 	
 

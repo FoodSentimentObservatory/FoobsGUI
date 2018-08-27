@@ -45,7 +45,8 @@ public class Main extends Application {
 			primaryStage.setScene(rootScene);
 			
 			
-			controller.setHome();
+			//controller.setHome();
+			controller.setLogin();
 			primaryStage.show();
 			primaryStage.setOnHiding(new EventHandler<WindowEvent>() {
 
